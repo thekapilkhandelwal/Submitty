@@ -1,0 +1,61 @@
+<div class="content">
+  <h1>
+    Statistics
+  </h1>
+
+  <form method="post" action="{{base_url}}/stats/get_stats">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
+    <input id="start_date" class="date_picker" type="date" name="start_date" required="required"/>
+    <input id="end_date" class="date_picker" type="date" name="end_date" required="required"/>
+    <select id="queue_code" class="form-control" name="queue_code" aria-label="Code" required="required">
+      <option value="all">All Queues</option>
+      {% for queue in viewer.getAllQueuesEver() %}
+        <option value="queue-{{queue['queue_code']}}">{{viewer.removeUnderScores(queue['queue_code'])}}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+
+  <script>
+    flatpickr(".date_picker", {
+      plugins: [ShortcutButtonsPlugin({
+        button: [{
+            label: "Now"
+          },
+          {
+            label: "Tomorrow"
+          },
+          {
+            label: "End of time"
+          }
+
+        ],
+        onClick: (index, fp) => {
+          let date;
+          switch (index) {
+            case 0:
+              updateToServerTime(fp);
+              break;
+            case 1:
+              updateToTomorrowServerTime(fp);
+              break;
+            case 2:
+              date = new Date("9998-01-01 00:00:00");
+              fp.setDate(date, true);
+              break;
+
+          }
+        }
+      })],
+      allowInput: true,
+      enableTime: true,
+      enableSeconds: true,
+      time_24hr: true,
+      dateFormat: "Y-m-d H:i:S",
+      onReady: (a, b, fp) => {
+        fp.calendarContainer.firstChild.childNodes[1].firstChild.firstChild.setAttribute('aria-label', 'Month');
+        fp.calendarContainer.childNodes[2].childNodes[4].firstChild.setAttribute('aria-label', 'Seconds');
+      }
+    });
+  </script>
+</div>

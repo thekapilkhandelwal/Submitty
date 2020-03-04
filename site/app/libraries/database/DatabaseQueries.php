@@ -5415,6 +5415,13 @@ AND gc_id IN (
         return $this->course_db->rows();
     }
 
+    public function getAllQueuesEver() {
+        $this->course_db->query("SELECT DISTINCT queue_code FROM queue
+                                 UNION
+                                 SELECT DISTINCT code as queue_code FROM queue_settings");
+        return $this->course_db->rows();
+    }
+
     public function getQueueNumberAheadOfYou($queue_code = null) {
         if ($queue_code) {
             $time_in = $this->core->getQueries()->getCurrentQueueState()['time_in'];

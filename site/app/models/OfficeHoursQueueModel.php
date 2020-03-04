@@ -86,6 +86,10 @@ class OfficeHoursQueueModel extends AbstractModel {
         return $this->core->getQueries()->getAllQueues();
     }
 
+    public function getAllQueuesEver() {
+        return $this->core->getQueries()->getAllQueuesEver();
+    }
+
     public function timeToHM($time) {
         return date_format(date_create($time), "g:iA");
     }
