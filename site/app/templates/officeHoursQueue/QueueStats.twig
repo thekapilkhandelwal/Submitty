@@ -3,7 +3,7 @@
     Statistics
   </h1>
 
-  <form method="post" action="{{base_url}}/stats/get_stats">
+  <form id="stats_form" method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
     <input id="start_date" class="date_picker" type="date" name="start_date" required="required"/>
     <input id="end_date" class="date_picker" type="date" name="end_date" required="required"/>
@@ -16,7 +16,20 @@
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
 
+  <div id="stats_data">
+  </div>
+
   <script>
+
+    $('#stats_form').submit(function () {
+      $.post("{{base_url}}/stats/get_stats", $("#stats_form").serialize(), function(data) {
+        $("#stats_data").html(data);
+      });
+
+      return false;
+    });
+
+
     flatpickr(".date_picker", {
       plugins: [ShortcutButtonsPlugin({
         button: [{

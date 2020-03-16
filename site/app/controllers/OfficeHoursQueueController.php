@@ -452,8 +452,14 @@ class OfficeHoursQueueController extends AbstractController {
             );
         }
 
-        return Response::RedirectOnlyResponse(
-            new RedirectResponse($this->core->buildCourseUrl(['office_hours_queue', 'stats']))
+        $this->core->getOutput()->useHeader(false);
+        $this->core->getOutput()->useFooter(false);
+        return Response::WebOnlyResponse(
+            new WebResponse(
+                'OfficeHoursQueue',
+                'renderCurrentQueue',
+                new OfficeHoursQueueModel($this->core)
+            )
         );
     }
 }
