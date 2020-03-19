@@ -36,9 +36,7 @@ class OfficeHoursQueueView extends AbstractView {
         $this->core->getOutput()->addVendorJs(FileUtils::joinPaths('flatpickr', 'plugins', 'shortcutButtons', 'shortcut-buttons-flatpickr.min.js'));
         $this->core->getOutput()->addVendorCss(FileUtils::joinPaths('flatpickr', 'plugins', 'shortcutButtons', 'themes', 'light.min.css'));
 
-        $output = $this->renderPart($viewer, "officeHoursQueue/QueueStats.twig");
-
-        return $output;
+        return $this->renderPart($viewer, "officeHoursQueue/QueueStats.twig");
     }
 
     private function renderPart($viewer, $twig_location) {

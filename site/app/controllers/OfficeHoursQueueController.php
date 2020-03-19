@@ -424,42 +424,4 @@ class OfficeHoursQueueController extends AbstractController {
             )
         );
     }
-
-    /**
-    * @Route("/{_semester}/{_course}/office_hours_queue/stats/get_stats", methods={"POST"})
-    * @AccessControl(role="LIMITED_ACCESS_GRADER")
-    * @return Response
-    */
-    public function getStats() {
-        if (empty($_POST['start_date'])) {
-            $this->core->addErrorMessage("Missing start date");
-            return Response::RedirectOnlyResponse(
-                new RedirectResponse($this->core->buildCourseUrl(['office_hours_queue', 'stats']))
-            );
-        }
-
-        if (empty($_POST['end_date'])) {
-            $this->core->addErrorMessage("Missing end date");
-            return Response::RedirectOnlyResponse(
-                new RedirectResponse($this->core->buildCourseUrl(['office_hours_queue', 'stats']))
-            );
-        }
-
-        if (empty($_POST['queue_code'])) {
-            $this->core->addErrorMessage("Missing queue code");
-            return Response::RedirectOnlyResponse(
-                new RedirectResponse($this->core->buildCourseUrl(['office_hours_queue', 'stats']))
-            );
-        }
-
-        $this->core->getOutput()->useHeader(false);
-        $this->core->getOutput()->useFooter(false);
-        return Response::WebOnlyResponse(
-            new WebResponse(
-                'OfficeHoursQueue',
-                'renderCurrentQueue',
-                new OfficeHoursQueueModel($this->core)
-            )
-        );
-    }
 }
