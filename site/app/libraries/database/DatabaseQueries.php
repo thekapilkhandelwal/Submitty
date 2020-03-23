@@ -5463,6 +5463,17 @@ AND gc_id IN (
         return $this->course_db->rows()[0]['change_count'];
     }
 
+    public function getAvgOhQueueWaitTime($queue_code){
+      $this->course_db->query("select avg(time_help_start - time_in) from queue where queue_code = ? and (removal_type = 'helped' or removal_type = 'self_helped') and time_in > CURRENT_DATE", array($queue_code));
+      return $this->course_db->rows()[0]['avg'];
+    }
+
+    public function getAvgOhQueueHelpTime($queue_code){
+      $this->course_db->query("select avg(time_out - time_help_start) from queue where queue_code = ? and (removal_type = 'helped' or removal_type = 'self_helped') and time_in > CURRENT_DATE", array($queue_code));
+      return $this->course_db->rows()[0]['avg'];
+    }
+
+
 
 /////////////////END Office Hours Queue queries//////////////////////////////////
 

@@ -24,7 +24,7 @@
           </label>
           <select id="queue_code" class="form-control" name="code" required="required" onchange="document.getElementById('add_to_queue').action = '{{base_url}}/'+this.value+'/add';">
             <option value="">Queue Name</option>
-            {% for queue in viewer.getAllQueues() %}
+            {% for queue in viewer.getAllQueues() if queue['open'] == 'true' %}
               <option value="{{queue['code']}}">{{viewer.removeUnderScores(queue['code'])}}</option>
             {% endfor %}
           </select>
@@ -40,17 +40,25 @@
         <button id="join_queue_btn" type="submit" class="btn btn-primary">Join</button>
       </form>
     {% elseif viewer.getCurrentQueueStatus() == 'waiting' %}
+      <p>
       {% if viewer.getQueueNumberAheadOfYou(viewer.getCurrentQueueCode()) - 1 == 1 %}
-        <p>There is currently
+        There is currently
           {{viewer.getQueueNumberAheadOfYou(viewer.getCurrentQueueCode()) - 1 }}
-          person ahead of you in the queue</p>
+          person ahead of you in the queue
       {% else %}
-        <p>There are currently
+        There are currently
           {{viewer.getQueueNumberAheadOfYou(viewer.getCurrentQueueCode()) - 1 }}
-          people ahead of you in the queue</p>
+          people ahead of you in the queue{% if viewer.getQueueNumberAheadOfYou(viewer.getCurrentQueueCode()) - 1 == 0 %}, somebody should able to assist you shortly{% endif %}
       {% endif %}
+      </p>
       <p>You are currently in:
         <b>{{viewer.removeUnderScores(viewer.getCurrentQueueCode())}}</b>
+      </p>
+      <p>The average wait time today is
+        <b>{{viewer.getAvgOhQueueWaitTime(viewer.getCurrentQueueCode())}}</b>
+      </p>
+      <p>The average time being helped today is
+        <b>{{viewer.getAvgOhQueueHelpTime(viewer.getCurrentQueueCode())}}</b>
       </p>
       <form method="post" action="{{base_url}}/{{ viewer.getCurrentQueueCode() }}/remove" onsubmit="return confirm('Are you sure you want to leave the queue? Leaving will reset your position in the queue');">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>

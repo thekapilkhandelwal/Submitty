@@ -95,7 +95,7 @@ class OfficeHoursQueueModel extends AbstractModel {
     }
 
     public function timeToHM($time) {
-        return date_format(date_create($time), "g:iA");
+        return date_format(date_create($time), "g:iA T");
     }
 
     public function timeToISO($time) {
@@ -175,5 +175,26 @@ class OfficeHoursQueueModel extends AbstractModel {
 
     public function getQueueMessage() {
         return $this->core->getConfig()->getQueueMessage();
+    }
+
+    public function intervalToHMS($interval){
+      if(!$interval){
+        return 'Unknown';
+      }
+      $times = preg_split('/\./', $interval);
+      $times = preg_split('/:/', $times[0]);
+      $ret = "";
+      $ret .= $times[0].'h ';
+      $ret .= $times[1].'m ';
+      $ret .= $times[2].'s';
+      return $ret;
+    }
+
+    public function getAvgOhQueueWaitTime($queue_code){
+      return $this->intervalToHMS($this->core->getQueries()->getAvgOhQueueWaitTime($queue_code));
+    }
+
+    public function getAvgOhQueueHelpTime($queue_code){
+      return $this->intervalToHMS($this->core->getQueries()->getAvgOhQueueHelpTime($queue_code));
     }
 }
