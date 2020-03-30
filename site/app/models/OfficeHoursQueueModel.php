@@ -5,6 +5,8 @@ namespace app\models;
 use app\libraries\Core;
 use app\libraries\DateUtils;
 use app\models\OfficeHoursQueueModel;
+use DateTime;
+use DateTimeZone;
 
 class OfficeHoursQueueModel extends AbstractModel {
 
@@ -27,6 +29,7 @@ class OfficeHoursQueueModel extends AbstractModel {
     private $current_queue;
     private $full_history;
     private $colors = array('#c98ee4','#9fcc55','#ea79a1','#4ed78e','#ef7568','#38b3eb','#e09965','#8499e3','#83cc88','#d9ab39','#4ddcc0','#b9c673','#658bfb','#76cc6c','#dc8b3d','#c9bf5d','#5499f0','#9a89f0','#e57fcf','#c0c246');
+    private $timezone;
 
     /**
     * OfficeHoursQueueModel constructor.
@@ -43,6 +46,11 @@ class OfficeHoursQueueModel extends AbstractModel {
 
         $this->current_queue = $this->core->getQueries()->getCurrentQueue();
         $this->full_history = $full_history === 'true';
+
+
+        $dateTime = new DateTime();
+        $dateTime->setTimeZone(new DateTimeZone($this->core->getConfig()->getTimezone()->getName()));
+        $this->time_zone = $dateTime->format('T');
     }
 
     public function getIndexFromCode($code) {
@@ -95,7 +103,7 @@ class OfficeHoursQueueModel extends AbstractModel {
     }
 
     public function timeToHM($time) {
-        return date_format(date_create($time), "g:iA T");
+        return date_format(date_create($time), "g:iA ") . $this->time_zone;
     }
 
     public function timeToISO($time) {
