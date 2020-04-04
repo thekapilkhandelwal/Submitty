@@ -302,7 +302,7 @@ class FileUtils {
         if (file_exists($filename) && !is_writable($filename)) {
             return false;
         }
-        return file_put_contents($filename, $data) !== false;
+        return file_put_contents($filename, $data, LOCK_EX) !== false;
     }
 
     /**

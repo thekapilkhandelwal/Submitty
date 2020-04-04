@@ -14,6 +14,7 @@ use app\libraries\response\Response;
 use app\libraries\routers\AccessControl;
 use app\libraries\Utils;
 use app\models\gradeable\Gradeable;
+use app\models\gradeable\GradedGradeable;
 use app\models\gradeable\SubmissionTextBox;
 use app\models\gradeable\SubmissionCodeBox;
 use app\models\gradeable\SubmissionMultipleChoice;
@@ -24,6 +25,30 @@ class SubmissionController extends AbstractController {
     private $upload_details = array('version' => -1, 'version_path' => null, 'user_path' => null,
                                     'assignment_settings' => false);
 
+
+    private function getUserPath(Gradeable $gradeable, GradedGradeable $graded_gradeable) {
+        $who_id = $this->core->getUser()->getId();
+        $team_id = "";
+        if ($gradeable->isTeamAssignment()) {
+            if ($graded_gradeable !== null) {
+                $team = $graded_gradeable->getSubmitter()->getTeam();
+                $team_id = $team->getId();
+                $who_id = $team_id;
+                $user_id = "";
+            }
+            else {
+                return $this->uploadResult("Must be on a team to access submission.", false);
+            }
+        }
+
+        $gradeable_path = FileUtils::joinPaths(
+            $this->core->getConfig()->getCoursePath(),
+            "submissions",
+            $gradeable->getId()
+        );
+
+        return FileUtils::joinPaths($gradeable_path, $who_id);
+    }
 
     /**
      * Tries to get a given electronic gradeable considering the active
@@ -110,6 +135,32 @@ class SubmissionController extends AbstractController {
             return array('error' => true, 'message' => 'Must be on a team to access submission.');
         }
         else {
+            Logger::logAccess(
+                $this->core->getUser()->getId(),
+                $_COOKIE['submitty_token'],
+                "{$this->core->getConfig()->getSemester()}:{$this->core->getConfig()->getCourse()}:load_page:{$gradeable->getId()}"
+            );
+
+            $user_path = $this->getUserPath($gradeable, $graded_gradeable);
+            FileUtils::createDir($user_path, true);
+            $settings_file = FileUtils::joinPaths($user_path, "user_assignment_settings.json");
+            if (!file_exists($settings_file)) {
+                $json = [
+                    'active_version' => null,
+                    'history' => [],
+                    'page_load_history' => []
+                ];
+            }
+            else {
+                $json = FileUtils::readJsonFile($settings_file);
+            }
+
+            $json['page_load_history'][] = [
+                'time' => $now->format('m-d-Y_H:i:sO'),
+                'who' => $this->core->getUser()->getId()
+            ];
+            FileUtils::writeJsonFile($settings_file, $json);
+
             $url = $this->core->buildCourseUrl(['gradeable', $gradeable->getId()]);
             $this->core->getOutput()->addBreadcrumb($gradeable->getTitle(), $url);
             if (!$gradeable->hasAutogradingConfig()) {
@@ -652,7 +703,7 @@ class SubmissionController extends AbstractController {
         }
 
         // TODO: If any of these fail, should we "cancel" (delete) the entire submission attempt or just leave it?
-        if (!@file_put_contents($settings_file, FileUtils::encodeJson($json))) {
+        if (!FileUtils::writeJsonFile($settings_file, $json)) {
             return $this->uploadResult("Failed to write to settings file.", false);
         }
 
@@ -1233,7 +1284,7 @@ class SubmissionController extends AbstractController {
         }
 
         // TODO: If any of these fail, should we "cancel" (delete) the entire submission attempt or just leave it?
-        if (!@file_put_contents($settings_file, FileUtils::encodeJson($json))) {
+        if (!FileUtils::writeJsonFile($settings_file, FileUtils::encodeJson($json))) {
             return $this->uploadResult("Failed to write to settings file.", false);
         }
 
@@ -1341,15 +1392,10 @@ class SubmissionController extends AbstractController {
             elseif ($this->upload_details['assignment_settings'] === true) {
                 $settings_file = FileUtils::joinPaths($this->upload_details['user_path'], "user_assignment_settings.json");
                 $settings = json_decode(file_get_contents($settings_file), true);
-                if (count($settings['history']) == 1) {
-                    unlink($settings_file);
-                }
-                else {
-                    array_pop($settings['history']);
-                    $last = Utils::getLastArrayElement($settings['history']);
-                    $settings['active_version'] = $last['version'];
-                    file_put_contents($settings_file, FileUtils::encodeJson($settings));
-                }
+                array_pop($settings['history']);
+                $last = Utils::getLastArrayElement($settings['history']);
+                $settings['active_version'] = $last['version'];
+                FileUtils::writeJsonFile($settings_file, $settings);
             }
         }
         return $this->core->getOutput()->renderResultMessage($message, $success);
@@ -1456,9 +1502,14 @@ class SubmissionController extends AbstractController {
         $current_time = $this->core->getDateTimeNow()->format("Y-m-d H:i:sO");
         $current_time_string_tz = $current_time . " " . $this->core->getConfig()->getTimezone()->getName();
 
-        $json["history"][] = array("version" => $new_version, "time" => $current_time_string_tz, "who" => $original_user_id, "type" => "select");
+        $json["history"][] = [
+            "version" => $new_version,
+            "time" => $current_time_string_tz,
+            "who" => $original_user_id,
+            "type" => "select"
+        ];
 
-        if (!@file_put_contents($settings_file, FileUtils::encodeJson($json))) {
+        if (!FileUtils::writeJsonFile($settings_file, $json)) {
             $msg = "Could not write to settings file.";
             $this->core->addErrorMessage($msg);
             return new Response(
