@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\app\libraries;
 
 use app\libraries\Core;
@@ -25,17 +27,14 @@ class NumbersUtilsTester extends TestCase {
             array(200, 197, 10),
             array(1.02, 0.992, 0.06),
             array(98, 100, 7),
+            [123.123, 123.1233, 0]
         );
     }
 
     /**
-     * @param string $expectedValue
-     * @param string $value
-     * @param string $precision
-     *
      * @dataProvider roundPointValueData
      */
-    public function testRoundPointValue($expectedValue, $value, $precision) {
+    public function testRoundPointValue(float $expectedValue, float $value, float $precision): void {
         $this->assertEquals($expectedValue, NumberUtils::roundPointValue($value, $precision));
     }
 }

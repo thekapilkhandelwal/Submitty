@@ -16,7 +16,6 @@ class NumberUtils {
      * @return float The rounded result to the nearest multiple of precision
      */
     public static function roundPointValue(float $value, float $precision) {
-
         // No $precision, no rounding
         if ($precision === 0.0) {
             return $value;
@@ -46,13 +45,9 @@ class NumberUtils {
     }
 
     /**
-     * @param int $array_length
-     * @param string $student_id
-     * @param string $gradeable_id
      * @return array the randomized indices array
      */
-    public function getRandomIndices(int $array_length, string $student_id, string $gradeable_id) {
-
+    public function getRandomIndices(int $array_length, string $student_id, string $gradeable_id): array {
         // creating an array which is holding the indices to be shuffled.
         $randomizedIndices = array();
         for ($i = 0; $i < $array_length; $i++) {
@@ -77,13 +72,5 @@ class NumberUtils {
         }
 
         return $randomizedIndices;
-    }
-
-    /**
-     * @param array $array
-     * @return array indices for the given array
-     */
-    public function getIndices(array $array) {
-        return array_keys($array);
     }
 }
