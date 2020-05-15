@@ -5383,7 +5383,7 @@ AND gc_id IN (
     }
 
     public function getPastQueue() {
-        $this->course_db->query("SELECT ROW_NUMBER() OVER(order by time_out DESC, time_in DESC),* FROM queue where time_in > CURRENT_DATE AND current_state IN ('done') order by ROW_NUMBER");
+        $this->course_db->query("SELECT ROW_NUMBER() OVER(order by time_out DESC, time_in DESC),* FROM queue where time_in > ? AND current_state IN ('done') order by ROW_NUMBER", array($this->core->getDateTimeNow()->format('Y-m-d')));
         return $this->course_db->rows();
     }
 
@@ -5470,7 +5470,7 @@ AND gc_id IN (
                 TRIM(?),
                 ?,
                 ?,
-                current_timestamp,
+                ?,
                 NULL,
                 NULL,
                 ?,
@@ -5478,7 +5478,7 @@ AND gc_id IN (
                 NULL,
                 ?,
                 ?
-            )", array($queue_code,$user_id,$name,$user_id,$contact_info,$last_time_in_queue));
+            )", array($queue_code,$user_id,$name,$this->core->getDateTimeNow(),$user_id,$contact_info,$last_time_in_queue));
     }
 
     public function removeUserFromQueue($user_id, $remove_type, $queue_code) {
@@ -5502,7 +5502,7 @@ AND gc_id IN (
             return false;
         }
 
-        $this->course_db->query("UPDATE queue SET current_state = 'done', removal_type = ?, time_out = current_timestamp, removed_by = ? WHERE user_id = ? AND UPPER(TRIM(queue_code)) = UPPER(TRIM(?)) AND current_state IN ('waiting','being_helped')", array($remove_type,$this->core->getUser()->getId(), $user_id, $queue_code));
+        $this->course_db->query("UPDATE queue SET current_state = 'done', removal_type = ?, time_out = ?, removed_by = ? WHERE user_id = ? AND UPPER(TRIM(queue_code)) = UPPER(TRIM(?)) AND current_state IN ('waiting','being_helped')", array($remove_type,$this->core->getDateTimeNow(),$this->core->getUser()->getId(), $user_id, $queue_code));
     }
 
     public function startHelpUser($user_id, $queue_code) {
@@ -5511,7 +5511,7 @@ AND gc_id IN (
             $this->core->addErrorMessage("User not in queue");
             return false;
         }
-        $this->course_db->query("UPDATE queue SET current_state = 'being_helped', time_help_start = current_timestamp, help_started_by = ? WHERE user_id = ? and UPPER(TRIM(queue_code)) = UPPER(TRIM(?)) and current_state IN ('waiting')", array($this->core->getUser()->getId(), $user_id, $queue_code));
+        $this->course_db->query("UPDATE queue SET current_state = 'being_helped', time_help_start = ?, help_started_by = ? WHERE user_id = ? and UPPER(TRIM(queue_code)) = UPPER(TRIM(?)) and current_state IN ('waiting')", array($this->core->getDateTimeNow(),$this->core->getUser()->getId(), $user_id, $queue_code));
     }
 
     public function finishHelpUser($user_id, $queue_code, $remove_type) {
@@ -5521,11 +5521,11 @@ AND gc_id IN (
             return false;
         }
 
-        $this->course_db->query("UPDATE queue SET current_state = 'done', removal_type = ?, time_out = current_timestamp, removed_by = ? WHERE user_id = ? AND UPPER(TRIM(queue_code)) = UPPER(TRIM(?)) and current_state IN ('being_helped')", array($remove_type,$this->core->getUser()->getId(), $user_id, $queue_code));
+        $this->course_db->query("UPDATE queue SET current_state = 'done', removal_type = ?, time_out = ?, removed_by = ? WHERE user_id = ? AND UPPER(TRIM(queue_code)) = UPPER(TRIM(?)) and current_state IN ('being_helped')", array($remove_type,$this->core->getDateTimeNow(),$this->core->getUser()->getId(), $user_id, $queue_code));
     }
 
     public function emptyQueue($queue_code) {
-        $this->course_db->query("UPDATE queue SET current_state = 'done', removal_type = 'emptied', removed_by = ?, time_out = current_timestamp where current_state IN ('waiting','being_helped') and UPPER(TRIM(queue_code)) = UPPER(TRIM(?))", array($this->core->getUser()->getId(), $queue_code));
+        $this->course_db->query("UPDATE queue SET current_state = 'done', removal_type = 'emptied', removed_by = ?, time_out = ? where current_state IN ('waiting','being_helped') and UPPER(TRIM(queue_code)) = UPPER(TRIM(?))", array($this->core->getUser()->getId(), $this->core->getDateTimeNow(), $queue_code));
     }
 
     public function getQueueFromEntryId($entry_id) {
@@ -5602,23 +5602,16 @@ AND gc_id IN (
         return $this->course_db->rows()[0]['change_count'];
     }
 
-    public function getAvgOhQueueWaitTime($queue_code){
-      $this->course_db->query("select avg(time_help_start - time_in) from queue where queue_code = ? and (removal_type = 'helped' or removal_type = 'self_helped') and time_in > CURRENT_DATE", array($queue_code));
-      return $this->course_db->rows()[0]['avg'];
-    }
-
-    public function getAvgOhQueueHelpTime($queue_code){
-      $this->course_db->query("select avg(time_out - time_help_start) from queue where queue_code = ? and (removal_type = 'helped' or removal_type = 'self_helped') and time_in > CURRENT_DATE", array($queue_code));
-      return $this->course_db->rows()[0]['avg'];
-    }
-
     public function getNumberAheadInQueueThisWeek($queue_code, $time_in) {
-        $this->course_db->query("SELECT count(*) from queue where last_time_in_queue < CURRENT_DATE - interval '4' day AND UPPER(TRIM(queue_code)) = UPPER(TRIM(?)) and current_state IN ('waiting') and time_in < ?", array($queue_code, $time_in));
+        $day_threshold = $this->core->getDateTimeNow()->modify('-4 day')->format('Y-m-d');
+        $this->course_db->query("SELECT count(*) from queue where last_time_in_queue < ? AND UPPER(TRIM(queue_code)) = UPPER(TRIM(?)) and current_state IN ('waiting') and time_in < ?", array($day_threshold, $queue_code, $time_in));
         return $this->course_db->rows()[0]['count'];
     }
 
     public function getNumberAheadInQueueToday($queue_code, $time_in) {
-        $this->course_db->query("SELECT count(*) from queue where last_time_in_queue < CURRENT_DATE AND last_time_in_queue > CURRENT_DATE - interval '4' day AND UPPER(TRIM(queue_code)) = UPPER(TRIM(?)) and current_state IN ('waiting') and time_in < ?", array($queue_code, $time_in));
+        $current_date = $this->core->getDateTimeNow()->format('Y-m-d');
+        $day_threshold = $this->core->getDateTimeNow()->modify('-4 day')->format('Y-m-d');
+        $this->course_db->query("SELECT count(*) from queue where last_time_in_queue < ? AND last_time_in_queue > ? AND UPPER(TRIM(queue_code)) = UPPER(TRIM(?)) and current_state IN ('waiting') and time_in < ?", array($current_date, $day_threshold, $queue_code, $time_in));
         return $this->course_db->rows()[0]['count'];
     }
 

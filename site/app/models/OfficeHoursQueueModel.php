@@ -211,28 +211,6 @@ class OfficeHoursQueueModel extends AbstractModel {
         return $this->core->getConfig()->getQueueMessage();
     }
 
-    public function intervalToHMS($interval){
-      if(!$interval){
-        return 'Unknown';
-      }
-      $times = preg_split('/\./', $interval);
-      $times = preg_split('/:/', $times[0]);
-      $ret = "";
-      $ret .= $times[0].'h ';
-      $ret .= $times[1].'m ';
-      $ret .= $times[2].'s';
-      return $ret;
-    }
-
-    public function getAvgOhQueueWaitTime($queue_code){
-      return $this->intervalToHMS($this->core->getQueries()->getAvgOhQueueWaitTime($queue_code));
-    }
-
-    public function getAvgOhQueueHelpTime($queue_code){
-      return $this->intervalToHMS($this->core->getQueries()->getAvgOhQueueHelpTime($queue_code));
-    }
-
-
     public function getNumberAheadInQueueThisWeek() {
         if ($this->firstTimeInQueueThisWeek($this->getCurrentQueueLastHelped())) {
             $time_in = DateUtils::parseDateTime($this->getCurrentQueueTimeIn(), $this->core->getConfig()->getTimezone());
