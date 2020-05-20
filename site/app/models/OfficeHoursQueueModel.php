@@ -30,7 +30,7 @@ class OfficeHoursQueueModel extends AbstractModel {
     private $full_history;
     private $current_queue_state;
     private $colors = array('#c98ee4','#9fcc55','#ea79a1','#4ed78e','#ef7568','#38b3eb','#e09965','#8499e3','#83cc88','#d9ab39','#4ddcc0','#b9c673','#658bfb','#76cc6c','#dc8b3d','#c9bf5d','#5499f0','#9a89f0','#e57fcf','#c0c246');
-    private $timezone;
+    private $time_zone;
 
     /**
     * OfficeHoursQueueModel constructor.

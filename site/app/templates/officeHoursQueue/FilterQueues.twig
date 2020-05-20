@@ -107,6 +107,7 @@
     {% for color in viewer.getColors() %}
       .row_color_{{loop.index0}}{
         background: {{color}}!important;
+        color: var(--btn-text-black);
       }
     {% endfor %}
   </style>

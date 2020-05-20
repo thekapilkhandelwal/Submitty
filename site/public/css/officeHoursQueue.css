@@ -48,6 +48,6 @@ th{
     }
 }
 
-.current_queue_row, a > i.fas{
+.unhide-user-id > .fas {
   color: var(--btn-text-black);
 }
