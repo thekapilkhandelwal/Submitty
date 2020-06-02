@@ -22,8 +22,11 @@
             <span class="thread-list-item">{% if thread.current_user_posted %}
                     <i class="fas fa-comments" title="You have contributed" aria-label="You have contributed"></i>
                 {% endif %}
-                {{ thread.title }}</span>
-            <span class="thread-content">{{ thread.content }}</span>
+                <span class="small_thread_list">{{ thread.title }}</span>
+                <span class="large_thread_list">{{ thread.extra_title }}</span>
+            </span>
+            <span class="small_thread_list thread-content">{{ thread.content }}</span>
+            <span class="large_thread_list thread-content">{{ thread.extra_content }}</span>
 
             {% for category in thread.categories %}
                 <span class="label_forum" style="background-color: {{ category[1] }}">{{ category[0] }}</span>

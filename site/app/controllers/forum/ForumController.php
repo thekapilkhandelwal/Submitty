@@ -897,9 +897,11 @@ class ForumController extends AbstractController {
                 }
             }
         }
+        $thread_requested = true;
         if (empty($thread_id) || empty($posts)) {
             $new_posts = $this->core->getQueries()->getUnviewedPosts(-1, $current_user);
             $posts = $this->core->getQueries()->getPostsForThread($current_user, -1, $show_deleted);
+            $thread_requested = false;
         }
         $thread_id = -1;
         if (!empty($posts)) {
@@ -914,10 +916,10 @@ class ForumController extends AbstractController {
         $threads = $this->getSortedThreads($category_id, $max_thread, $show_deleted, $show_merged_thread, $thread_status, $unread_threads, $pageNumber, $thread_id);
 
         if (!empty($_REQUEST["ajax"])) {
-            $this->core->getOutput()->renderTemplate('forum\ForumThread', 'showForumThreads', $user, $posts, $new_posts, $threads, $show_deleted, $show_merged_thread, $option, $max_thread, $pageNumber, $thread_resolve_state, ForumUtils::FORUM_CHAR_POST_LIMIT, true);
+            $this->core->getOutput()->renderTemplate('forum\ForumThread', 'showForumThreads', $user, $posts, $new_posts, $threads, $show_deleted, $show_merged_thread, $option, $max_thread, $pageNumber, $thread_resolve_state, $thread_requested, ForumUtils::FORUM_CHAR_POST_LIMIT, true);
         }
         else {
-            $this->core->getOutput()->renderOutput('forum\ForumThread', 'showForumThreads', $user, $posts, $new_posts, $threads, $show_deleted, $show_merged_thread, $option, $max_thread, $pageNumber, $thread_resolve_state, ForumUtils::FORUM_CHAR_POST_LIMIT, false);
+            $this->core->getOutput()->renderOutput('forum\ForumThread', 'showForumThreads', $user, $posts, $new_posts, $threads, $show_deleted, $show_merged_thread, $option, $max_thread, $pageNumber, $thread_resolve_state, $thread_requested, ForumUtils::FORUM_CHAR_POST_LIMIT, false);
         }
     }
 

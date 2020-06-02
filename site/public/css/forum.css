@@ -599,3 +599,7 @@ body {min-width: 925px;}
 [data-theme="dark"] .well {
   box-shadow: none;
 }
+
+.large_thread_list {
+  display: none;
+}

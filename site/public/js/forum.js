@@ -1207,7 +1207,10 @@ function loadThreadHandler(){
                 saveScrollLocationOnRefresh('posts_list');
 
                 $(".post_reply_from").submit(publishPost);
-
+                $("#thread_list").addClass("col-3").removeClass("col-12");
+                $("#posts_list").addClass("col-9").removeClass("d-none");
+                $(".large_thread_list").hide();
+                $(".small_thread_list").show();
             },
             error: function(){
                 window.alert("Something went wrong while trying to display thread details. Please try again.");
@@ -1399,7 +1402,7 @@ function updateSelectedThreadContent(selected_thread_first_post_id){
                 $('#messages').append(message);
                 return;
             }
-            
+
             json = json['data'];
             $("#thread-content").html(json['post']);
             if (json.markdown === true) {

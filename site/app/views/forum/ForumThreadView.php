@@ -108,7 +108,7 @@ class ForumThreadView extends AbstractView {
         displayed in the left panel.
     */
 
-    public function showForumThreads($user, $posts, $unviewed_posts, $threadsHead, $show_deleted, $show_merged_thread, $display_option, $max_thread, $initialPageNumber, $thread_resolve_state, $post_content_limit, $ajax = false) {
+    public function showForumThreads($user, $posts, $unviewed_posts, $threadsHead, $show_deleted, $show_merged_thread, $display_option, $max_thread, $initialPageNumber, $thread_resolve_state, $thread_requested, $post_content_limit, $ajax = false) {
 
         if (!$this->forumAccess()) {
             $this->core->redirect($this->core->buildCourseUrl([]));
@@ -313,7 +313,7 @@ class ForumThreadView extends AbstractView {
             $activeThreadAnnouncement = false;
             $activeThreadTitle = "";
             $activeThread = array();
-            $displayThreadContent = $this->displayThreadList($threadsHead, false, $activeThreadAnnouncement, $activeThreadTitle, $activeThread, $currentThread, $currentCategoriesIds, false);
+            $displayThreadContent = $this->displayThreadList($threadsHead, false, $activeThreadAnnouncement, $activeThreadTitle, $activeThread, $currentThread, $currentCategoriesIds, false, $thread_requested);
 
             if (count($activeThread) == 0) {
                 $activeThread = $this->core->getQueries()->getThread($currentThread)[0];
@@ -359,7 +359,8 @@ class ForumThreadView extends AbstractView {
                 "search_url" => $this->core->buildCourseUrl(['forum', 'search']),
                 "merge_url" => $this->core->buildCourseUrl(['forum', 'threads', 'merge']),
                 "split_url" => $this->core->buildCourseUrl(['forum', 'posts', 'split']),
-                "post_content_limit" => $post_content_limit
+                "post_content_limit" => $post_content_limit,
+                'thread_requested' => $thread_requested
             ]);
         }
         else {
@@ -502,7 +503,7 @@ class ForumThreadView extends AbstractView {
             $current_thread_first_post = $this->core->getQueries()->getFirstPostForThread($currentThread);
             $current_thread_date = $current_thread_first_post["timestamp"];
             $merge_thread_list = $this->core->getQueries()->getThreadsBefore($current_thread_date, 1);
-            
+
             // Get first post of each thread. To be used later
             // to obtain the content of the post to be displayed
             // in the modal.
@@ -582,7 +583,7 @@ class ForumThreadView extends AbstractView {
         return $str;
     }
 
-    public function displayThreadList($threads, $filtering, &$activeThreadAnnouncement, &$activeThreadTitle, &$activeThread, $thread_id_p, $current_categories_ids, $render) {
+    public function displayThreadList($threads, $filtering, &$activeThreadAnnouncement, &$activeThreadTitle, &$activeThread, $thread_id_p, $current_categories_ids, $render, $thread_requested=true) {
         $used_active = false; //used for the first one if there is not thread_id set
         $current_user = $this->core->getUser()->getId();
         $display_thread_ids = $this->core->getUser()->getGroup() <= 2;
@@ -613,7 +614,7 @@ class ForumThreadView extends AbstractView {
             // $current_categories_ids should be subset of $thread["categories_ids"]
             $issubset = (count(array_intersect($current_categories_ids, $thread["categories_ids"])) == count($current_categories_ids));
             if (((isset($_REQUEST["thread_id"]) && $_REQUEST["thread_id"] == $thread["id"]) || $thread_id_p == $thread["id"] || $thread_id_p == -1) && !$used_active && $issubset) {
-                $class .= " active";
+                $class .= $thread_requested ? " active" : "";
                 $used_active = true;
                 $activeThreadTitle = ($display_thread_ids ? "({$thread['id']}) " : '') . $thread["title"];
                 $activeThread = $thread;
@@ -652,12 +653,17 @@ class ForumThreadView extends AbstractView {
 
             $sizeOfContent = strlen($first_post_content);
             $contentDisplay = substr($first_post_content, 0, ($sizeOfContent < 80) ? $sizeOfContent : strrpos(substr($first_post_content, 0, 80), " "));
+            $extraContentDisplay = substr($first_post_content, 0, ($sizeOfContent < 400) ? $sizeOfContent : strrpos(substr($first_post_content, 0, 400), " "));
             $titleLength = strlen($thread['title']);
 
             $titleDisplay = substr($titleDisplay, 0, ($titleLength < 40) ? $titleLength : strrpos(substr($titleDisplay, 0, 40), " "));
+            $extraTitleDisplay = substr($titleDisplay, 0, ($titleLength < 140) ? $titleLength : strrpos(substr($titleDisplay, 0, 140), " "));
 
             if (strlen($first_post["content"]) > 80) {
                 $contentDisplay .= "...";
+            }
+            if (strlen($first_post["content"]) > 400) {
+                $extraContentDisplay .= "...";
             }
             if (strlen($thread["title"]) > 40) {
                 //Fix ... appearing
@@ -666,7 +672,15 @@ class ForumThreadView extends AbstractView {
                 }
                 $titleDisplay .= "...";
             }
+            if (strlen($thread["title"]) > 140) {
+                //Fix ... appearing
+                if (empty($titleDisplay)) {
+                    $extraTitleDisplay .= substr($thread['title'], 0, 110);
+                }
+                $extraTitleDisplay .= "...";
+            }
             $titleDisplay = ($display_thread_ids ? "({$thread['id']}) " : '') . $titleDisplay;
+            $extraTitleDisplay = ($display_thread_ids ? "({$thread['id']}) " : '') . $extraTitleDisplay;
 
             $link = $this->core->buildCourseUrl(['forum', 'threads', $thread['id']]);
 
@@ -704,7 +718,9 @@ class ForumThreadView extends AbstractView {
             $thread_content[] = [
                 'thread_id' => $thread['id'],
                 "title" => $titleDisplay,
+                "extra_title" => $extraTitleDisplay,
                 "content" => $contentDisplay,
+                "extra_content" => $extraContentDisplay,
                 "categories" => $categories_content,
                 "link" => $link,
                 "class" => $class,
