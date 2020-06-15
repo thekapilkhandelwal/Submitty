@@ -426,7 +426,7 @@
           "type" : "string"
         },
         "points" : {
-          "type" : "number", 
+          "type" : "number",
           "description" : "The number of points the student receives if actual_file exists"
         },
         "title" : {
@@ -444,7 +444,7 @@
       "type": "object",
       "additionalProperties" : false,
       "required" : ["containers", "solution_containers", "dispatcher_actions", "points",
-                    "pre_commands", "single_port_per_container", 
+                    "pre_commands", "single_port_per_container",
                     "use_router", "title", "validation", "timestamped_stdout", "publish_actions"],
       "properties" : {
         "timestamped_stdout" : {
@@ -524,6 +524,18 @@
                     "items" : {
                       "type" : "string"
                     }
+                  }
+                }
+              },
+              {
+                "description" : "Tell container to stop, start, or be killed.",
+                "type": "object",
+                "additionalProperties" : false,
+                "required" : ["action"],
+                "properties" : {
+                  "action" : {
+                    "type" : "string",
+                    "enum" : ["stop", "start", "kill"]
                   }
                 }
               }
@@ -818,7 +830,7 @@
               }
             ]
           }
-        }, 
+        },
         "points" : {
           "description" : "The point value of this testcase",
           "type": "number"
@@ -844,7 +856,7 @@
                   },
                   "destination" : {
                     "type" : "string"
-                  }, 
+                  },
                   "option" : {
                     "type" : "string"
                   },
@@ -889,7 +901,7 @@
                 "$ref" : "#/definitions/abstract_validation_object"
               }
             ]
-          } 
+          }
         }
       }
     },
@@ -1013,7 +1025,7 @@
               "type" : "string",
               "enum" : ["MultipleJUnitTestGrader"]
             }
-          }  
+          }
         },
         {
           "type" : "object",
@@ -1107,7 +1119,7 @@
             "method" : {
               "type" : "string",
               "enum" : ["PacmanGrader"]
-            }, 
+            },
             "num_tests" : {
               "type" : "integer",
               "minimum" : 1
@@ -1121,7 +1133,7 @@
             "method" : {
               "type" : "string",
               "enum" : ["searchToken"]
-            }, 
+            },
             "data" : {
               "type" : "array",
               "items" : {
@@ -1137,10 +1149,10 @@
             "method" : {
               "type" : "string",
               "enum" : ["intComparison"]
-            }, 
+            },
             "term" : {
               "type" : "number"
-            }, 
+            },
             "comparison" : {
               "type" : "string"
             },
@@ -1159,7 +1171,7 @@
             "method" : {
               "type" : "string",
               "enum" : ["diff"]
-            }, 
+            },
             "comparison" : {
               "type" : "string"
             },
@@ -1181,7 +1193,7 @@
             "method" : {
               "type" : "string",
               "enum" : ["fileExists"]
-            }, 
+            },
             "one_of" : {
               "type" : "boolean"
             },
@@ -1198,7 +1210,7 @@
             "method" : {
               "type" : "string",
               "enum" : ["warnIfNotEmpty"]
-            }, 
+            },
             "jvm_memory" : {
               "type" : "boolean"
             }
@@ -1282,7 +1294,7 @@
             }
           }
         }
-      ]       
+      ]
     },
     "notebook_object" : {
       "type": "object",
