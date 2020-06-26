@@ -3,11 +3,34 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from pytz import timezone as pytz_timezone
+import tzlocal
 
 from submitty_utils import dateutils
 
 
 class TestDateUtils(TestCase):
+    def setUp(self):
+        self.timezone = os.environ.get('TZ', None)
+
+    def tearDown(self):
+        if self.timezone is not None:
+            os.environ['TZ'] = self.timezone
+        else:
+            del os.environ['TZ']
+        tzlocal.reload_localzone()
+
+    def test_get_timezone(self):
+        os.environ['TZ'] = 'Europe/Amsterdam'
+        tzlocal.reload_localzone()
+        self.assertEqual(timezone('Europe/Amsterdam'), dateutils.get_timezone())
+
+    def test_get_today(self):
+        os.environ['TZ'] = 'UTC'
+        tzlocal.reload_localzone()
+        date = dateutils.get_current_time()
+        self.assertIsInstance(date, datetime)
+        self.assertEqual(timezone('UTC'), date.tzinfo)
+
     @patch(
         "submitty_utils.dateutils.get_current_time",
         return_value=pytz_timezone('America/New_York').localize(datetime(
